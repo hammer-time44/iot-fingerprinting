@@ -19,6 +19,9 @@ SCALER_PATH = os.path.join(MODEL_DIR, "raw_stat_scaler.pkl")
 with open(MODEL_PATH, "rb") as f:
     rf_model = pickle.load(f)
 
+# Ensure single-threaded prediction to prevent Windows joblib process/thread spawn latency
+rf_model.n_jobs = 1
+
 with open(SCALER_PATH, "rb") as f:
     scaler_dict = pickle.load(f)
 

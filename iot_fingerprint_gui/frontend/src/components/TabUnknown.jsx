@@ -45,6 +45,7 @@ export default function TabUnknown({ threshold = 0.84, setThreshold }) {
       }
       setActiveStreams((prev) => ({ ...prev, [devName]: false }));
     } else {
+      setActiveStreams((prev) => ({ ...prev, [devName]: true }));
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const host = window.location.hostname || '127.0.0.1';
       const wsUrl = `${protocol}//${host}:8765/stream/replay/${devName}?threshold=${threshold}`;
@@ -52,10 +53,6 @@ export default function TabUnknown({ threshold = 0.84, setThreshold }) {
       try {
         const ws = new WebSocket(wsUrl);
         socketsRef.current[devName] = ws;
-
-        ws.onopen = () => {
-          setActiveStreams((prev) => ({ ...prev, [devName]: true }));
-        };
 
         ws.onmessage = (event) => {
           const data = JSON.parse(event.data);

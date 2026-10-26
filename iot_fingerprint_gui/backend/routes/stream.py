@@ -70,6 +70,23 @@ async def replay_device_stream(
         return
 
     current_threshold = threshold if threshold is not None else CALIBRATED_THRESHOLD
+    threshold_holder = [current_threshold]
+    stop_event = asyncio.Event()
+
+    async def client_listener():
+        try:
+            while not stop_event.is_set():
+                msg = await websocket.receive_text()
+                data = json.loads(msg)
+                if data.get("action") == "set_threshold":
+                    threshold_holder[0] = float(data.get("threshold", threshold_holder[0]))
+                elif data.get("action") == "stop":
+                    stop_event.set()
+                    break
+        except Exception:
+            stop_event.set()
+
+    listener_task = asyncio.create_task(client_listener())
 
     # Replay loop
     total_streamed = 0
@@ -78,19 +95,8 @@ async def replay_device_stream(
 
     try:
         w_idx = 0
-        while True:
-            # Check for non-blocking client messages (e.g. threshold updates or pause)
-            try:
-                msg = await asyncio.wait_for(websocket.receive_text(), timeout=0.01)
-                data = json.loads(msg)
-                if data.get("action") == "set_threshold":
-                    current_threshold = float(data.get("threshold", current_threshold))
-                elif data.get("action") == "stop":
-                    break
-            except asyncio.TimeoutError:
-                pass
-            except json.JSONDecodeError:
-                pass
+        while not stop_event.is_set():
+            active_threshold = threshold_holder[0]
 
             # Get current window
             win_data = windows[w_idx % len(windows)]
@@ -101,7 +107,7 @@ async def replay_device_stream(
                 scaled_vec,
                 raw_feats,
                 window_index=total_streamed,
-                threshold=current_threshold
+                threshold=active_threshold
             )
 
             true_label = win_data.get("true_label", device_name)
@@ -123,7 +129,7 @@ async def replay_device_stream(
                 "closest_profile": pred_res["closest_profile"],
                 "top_prob": pred_res["top_prob"],
                 "probs": pred_res["probs"],
-                "threshold": current_threshold,
+                "threshold": active_threshold,
                 "running_stats": {
                     "total_windows": total_streamed,
                     "accuracy_pct": round(correct_matches / total_streamed * 100, 1),
@@ -133,7 +139,7 @@ async def replay_device_stream(
 
             await websocket.send_json(payload)
             w_idx += 1
-            await asyncio.sleep(0.8)  # smooth pacing for UI timeline
+            await asyncio.sleep(0.5)  # responsive 500ms pacing
 
     except WebSocketDisconnect:
         pass
@@ -142,6 +148,9 @@ async def replay_device_stream(
             await websocket.send_json({"type": "error", "message": str(e)})
         except Exception:
             pass
+    finally:
+        stop_event.set()
+        listener_task.cancel()
 
 
 @router.websocket("/stream/live")
