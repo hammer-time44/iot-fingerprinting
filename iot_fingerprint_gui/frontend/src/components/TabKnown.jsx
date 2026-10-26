@@ -4,6 +4,7 @@ import ProbabilityBars from './ProbabilityBars';
 import IatTimelineChart from './IatTimelineChart';
 import FeaturesTable from './FeaturesTable';
 import defaultEvaluationData from '../data/evaluation_data.json';
+import { startReplayStream } from '../data/replayClient';
 
 const KNOWN_DEVICES = [
   { id: 'AmazonEcho', name: 'Amazon Echo', category: 'Smart Voice Speaker', mac: '44:65:0d:56:cc:d3' },
@@ -27,55 +28,51 @@ export default function TabKnown({ threshold = 0.84 }) {
       .catch((err) => console.error('Error fetching model info:', err));
   }, []);
 
-  // Cleanup WebSockets on unmount
+  // Cleanup active streams on unmount
   useEffect(() => {
     return () => {
-      Object.values(socketsRef.current).forEach((ws) => ws && ws.close());
+      Object.values(socketsRef.current).forEach((h) => h && h.stop && h.stop());
     };
   }, []);
+
+  // Update running streams when threshold changes
+  useEffect(() => {
+    Object.values(socketsRef.current).forEach((h) => {
+      if (h && h.setThreshold) {
+        h.setThreshold(threshold);
+      }
+    });
+  }, [threshold]);
 
   const toggleStream = (devId) => {
     const isRunning = activeStreams[devId];
 
     if (isRunning) {
       if (socketsRef.current[devId]) {
-        socketsRef.current[devId].close();
+        socketsRef.current[devId].stop();
         delete socketsRef.current[devId];
       }
       setActiveStreams((prev) => ({ ...prev, [devId]: false }));
     } else {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.hostname || '127.0.0.1';
-      const wsUrl = `${protocol}//${host}:8765/stream/replay/${devId}?threshold=${threshold}`;
-
+      setActiveStreams((prev) => ({ ...prev, [devId]: true }));
       try {
-        const ws = new WebSocket(wsUrl);
-        socketsRef.current[devId] = ws;
-
-        ws.onopen = () => {
-          setActiveStreams((prev) => ({ ...prev, [devId]: true }));
-        };
-
-        ws.onmessage = (event) => {
-          const data = JSON.parse(event.data);
-          if (data.type === 'window') {
+        const handle = startReplayStream(
+          devId,
+          threshold,
+          (data) => {
             setStreamData((prev) => ({
               ...prev,
               [devId]: data,
             }));
+          },
+          () => {
+            setActiveStreams((prev) => ({ ...prev, [devId]: false }));
           }
-        };
-
-        ws.onerror = (err) => {
-          console.error(`WebSocket error for ${devId}:`, err);
-          setActiveStreams((prev) => ({ ...prev, [devId]: false }));
-        };
-
-        ws.onclose = () => {
-          setActiveStreams((prev) => ({ ...prev, [devId]: false }));
-        };
+        );
+        socketsRef.current[devId] = handle;
       } catch (err) {
-        console.error('Failed to open WebSocket:', err);
+        console.error('Failed to start replay stream:', err);
+        setActiveStreams((prev) => ({ ...prev, [devId]: false }));
       }
     }
   };

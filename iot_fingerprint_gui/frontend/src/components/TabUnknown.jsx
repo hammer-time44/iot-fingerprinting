@@ -4,6 +4,7 @@ import ProbabilityBars from './ProbabilityBars';
 import IatTimelineChart from './IatTimelineChart';
 import FeaturesTable from './FeaturesTable';
 import defaultEvaluationData from '../data/evaluation_data.json';
+import { startReplayStream } from '../data/replayClient';
 
 export default function TabUnknown({ threshold = 0.84, setThreshold }) {
   const [evalData, setEvalData] = useState(defaultEvaluationData);
@@ -20,18 +21,18 @@ export default function TabUnknown({ threshold = 0.84, setThreshold }) {
       .catch((err) => console.error('Error fetching evaluation data:', err));
   }, []);
 
-  // Cleanup WebSockets
+  // Cleanup active streams on unmount
   useEffect(() => {
     return () => {
-      Object.values(socketsRef.current).forEach((ws) => ws && ws.close());
+      Object.values(socketsRef.current).forEach((h) => h && h.stop && h.stop());
     };
   }, []);
 
-  // Update running sockets when threshold changes
+  // Update running streams when threshold changes
   useEffect(() => {
-    Object.values(socketsRef.current).forEach((ws) => {
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ action: 'set_threshold', threshold }));
+    Object.values(socketsRef.current).forEach((h) => {
+      if (h && h.setThreshold) {
+        h.setThreshold(threshold);
       }
     });
   }, [threshold]);
@@ -41,43 +42,30 @@ export default function TabUnknown({ threshold = 0.84, setThreshold }) {
 
     if (isRunning) {
       if (socketsRef.current[devName]) {
-        socketsRef.current[devName].close();
+        socketsRef.current[devName].stop();
         delete socketsRef.current[devName];
       }
       setActiveStreams((prev) => ({ ...prev, [devName]: false }));
     } else {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.hostname || '127.0.0.1';
-      const wsUrl = `${protocol}//${host}:8765/stream/replay/${devName}?threshold=${threshold}`;
-
+      setActiveStreams((prev) => ({ ...prev, [devName]: true }));
       try {
-        const ws = new WebSocket(wsUrl);
-        socketsRef.current[devName] = ws;
-
-        ws.onopen = () => {
-          setActiveStreams((prev) => ({ ...prev, [devName]: true }));
-        };
-
-        ws.onmessage = (event) => {
-          const data = JSON.parse(event.data);
-          if (data.type === 'window') {
+        const handle = startReplayStream(
+          devName,
+          threshold,
+          (data) => {
             setStreamData((prev) => ({
               ...prev,
               [devName]: data,
             }));
+          },
+          () => {
+            setActiveStreams((prev) => ({ ...prev, [devName]: false }));
           }
-        };
-
-        ws.onerror = (err) => {
-          console.error(`WebSocket error for ${devName}:`, err);
-          setActiveStreams((prev) => ({ ...prev, [devName]: false }));
-        };
-
-        ws.onclose = () => {
-          setActiveStreams((prev) => ({ ...prev, [devName]: false }));
-        };
+        );
+        socketsRef.current[devName] = handle;
       } catch (err) {
-        console.error('Failed to open WebSocket:', err);
+        console.error('Failed to start replay stream:', err);
+        setActiveStreams((prev) => ({ ...prev, [devName]: false }));
       }
     }
   };

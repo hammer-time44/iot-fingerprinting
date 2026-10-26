@@ -266,10 +266,19 @@ for dev_name in classes:
             
             # unscaled or scaled features
             feat_dict = {fn: float(row[fn]) for fn in feature_names}
+            vec = np.array([feat_dict[fn] for fn in feature_names]).reshape(1, -1)
+            p = rf_model.predict_proba(vec)[0]
+            best_i = int(np.argmax(p))
+            probs_d = {classes[i]: round(float(p[i]), 4) for i in range(len(classes))}
+
             windows_data.append({
                 "window_index": wid,
                 "iats": [round(float(v), 6) for v in iats],
                 "scaled_features": feat_dict,
+                "features": {k: round(v, 4) for k, v in feat_dict.items()},
+                "probs": probs_d,
+                "top_prob": round(float(p[best_i]), 4),
+                "closest_profile": classes[best_i],
                 "true_label": dev_name
             })
     with open(os.path.join(REPLAY_DIR, f"{dev_name}.json"), "w") as f:
@@ -294,12 +303,17 @@ for dev in all_27_devices:
             raw_feats = np.array([float(row[fn]) for fn in feature_names])
             scaled_feats = (raw_feats - mean_vec) / std_vec
             feat_dict = {fn: float(scaled_feats[i]) for i, fn in enumerate(feature_names)}
+            raw_dict = {fn: float(raw_feats[i]) for i, fn in enumerate(feature_names)}
+
+            vec = scaled_feats.reshape(1, -1)
+            p = rf_model.predict_proba(vec)[0]
+            best_i = int(np.argmax(p))
+            probs_d = {classes[i]: round(float(p[i]), 4) for i in range(len(classes))}
             
             # IATs
             if not sub_w.empty and idx < len(sub_w):
                 iats = sub_w.iloc[idx][iat_cols_unk[:128]].values.tolist()
             else:
-                # Synthesize reasonable IAT distribution from mean & std
                 m = float(row["raw_mean"])
                 s = max(float(row["raw_std"]), 0.001)
                 iats = np.clip(np.random.normal(m, s, 128), 0.00001, 10.0).tolist()
@@ -308,6 +322,10 @@ for dev in all_27_devices:
                 "window_index": idx,
                 "iats": [round(float(v), 6) for v in iats],
                 "scaled_features": feat_dict,
+                "features": {k: round(v, 4) for k, v in raw_dict.items()},
+                "probs": probs_d,
+                "top_prob": round(float(p[best_i]), 4),
+                "closest_profile": classes[best_i],
                 "true_label": dname
             })
         with open(os.path.join(REPLAY_DIR, f"{dname}.json"), "w") as f:
