@@ -1,61 +1,222 @@
-# Encrypted IoT Device Fingerprinting
+# IoT Device Fingerprinting from Encrypted Traffic
 
-## Dataset Selection
+Passive identification of IoT devices from network traffic timing,
+without inspecting packet payloads or storing any local identifiers
+(MAC addresses, IP addresses).
 
-### Chosen Devices (5)
-| Device | MAC | Rationale |
-|---|---|---|
-| AmazonEcho | 44:65:0d:56:cc:d3 | Strong, consistent traffic |
-| BelkinWemoMotionSensor | ec:1a:59:83:28:11 | Strong, consistent traffic |
-| PhilipsHue | 00:17:88:2b:9a:25 | Strong, consistent traffic |
-| SamsungCamera | 00:16:6c:ab:6b:88 | Strong, consistent traffic |
-| TPLinkSmartPlug | 50:c7:bf:00:56:39 | Lower volume but sufficient |
+Given a sequence of packets captured from a home network, the system
+extracts inter-arrival time (IAT) statistics from fixed-length windows
+and uses a Random Forest to classify which of the five known devices
+produced them.
 
-### Excluded Device
-**NestProtectSmokeAlarm** (MAC 18:b4:30:25:be:e4) was excluded after Step 1 density profiling. 95.2% of its 702,949 total packets (669,491) were concentrated on a single anomalous day (March 2, 2017). On all other 148 active days across the 6-month capture, it produced only ~200–400 packets/day — far too few to form even a handful of 128-packet windows. This is consistent with NestProtect's role as a smoke alarm that sends periodic heartbeats with one burst event. Including it would yield a class with ~1–5 training samples, which is statistically meaningless for classification.
+---
 
-### Capture Window: November 22–24, 2016
-This 3-day window was selected after profiling packet density per day across the full capture range (Sept 2016 – April 2017) for all candidate devices. Nov 22–24 maximizes simultaneous traffic across all 5 chosen devices:
+## Devices
 
-| Device | Packets in Window | Min Single-Day | ~Windows of 128 |
-|---|---:|---:|---:|
-| BelkinWemoMotionSensor | 381,530 | 118,030 | ~2,981 |
-| PhilipsHue | 228,268 | 69,921 | ~1,783 |
-| SamsungCamera | 182,589 | 52,676 | ~1,426 |
-| AmazonEcho | 174,982 | 57,305 | ~1,367 |
-| TPLinkSmartPlug | 8,503 | 2,817 | ~66 |
+| Device | MAC (source file only) |
+|---|---|
+| AmazonEcho | 44:65:0d:56:cc:d3 |
+| BelkinWemoMotionSensor | ec:1a:59:83:28:11 |
+| PhilipsHue | 00:17:88:2b:9a:25 |
+| SamsungCamera | 00:16:6c:ab:6b:88 |
+| TPLinkSmartPlug | 50:c7:bf:00:56:39 |
 
-## Step 3: IAT Transform Decision
+**Capture window:** November 22–24, 2016 (3 days).
 
-- **Transform**: `log(1 + IAT)` (`iat_transform: log1p` in config). Applied to raw IAT values before windowing.
-- **Why log-transform, not percentile clipping**: Computing a percentile-based clip threshold (e.g., P99) from the full device dataset before the train/val/test split (Step 6) would leak validation/test information into a preprocessing decision — the same violation Hard Rule 3 prohibits for scalers. A log-transform `log(1 + IAT)` avoids this entirely, since it is a fixed mathematical function with no data-derived parameters, while still compressing the multi-order-of-magnitude dynamic range (microseconds to minutes) into a DWT-friendly range.
-- **Preserves real signal**: Genuine long idle gaps (e.g., TPLinkSmartPlug's ~4-minute heartbeat intervals) are compressed, not discarded — they remain available as real behavioral signal for the classifier. Any remaining feature-level scale differences will be handled by the per-feature scaler in Step 6, fit on the training split only.
+---
 
-## Step 4: Windowing and Padding Decisions
+## Pipeline
 
-- **Window Size and Step**: `window_size` is set to `128` and `window_step` is set to `128`. This means windows are strictly non-overlapping. This decision was made to ensure that each window represents a completely independent slice of traffic (no data leakage or shared packets between adjacent windows), which simplifies the strict session/time-block splitting required by the project rules.
-- **Handling Incomplete Windows**: `pad_incomplete_windows` is set to `false`. The final incomplete window for any device is dropped rather than zero-padded. This prevents the Discrete Wavelet Transform (DWT) from extracting artificial edge artifacts from the padding boundary, which could pollute the signal with synthetic features not actually present in the device's traffic.
+Each step is an independently runnable script. Run them in order.
 
-## Step 8: Open-Set Detection (Diagnostic vs Final Engine)
+```
+Step 2  src/preprocessing.py   PCAP → per-device CSV (timestamp, packet_size, direction)
+Step 3  src/iat.py             Inter-arrival time extraction
+Step 4  src/windowing.py       log1p transform + 128-packet non-overlapping windows
+Step 5  src/features.py        13 raw statistical features per window
+Step 6  src/splits.py          Leakage-safe temporal train/val/test split + StandardScaler
+Step 7  src/classifier.py      Random Forest training and evaluation
+Step 8  src/openset.py         Open-set unknown device evaluation & thresholding
+```
 
-During Step 8, we evaluated the VAE on two different held-out devices. 
-- **TPLinkSmartPlug** (extreme IAT outlier): Detected 100% of the time as anomalous by both DWT and Raw Stats.
-- **BelkinWemoMotionSensor** (subtle IAT differences): Detected only 3.23% (DWT) and 14.28% (Raw Stats) of the time.
+### Step 2 — Preprocessing
 
-**Diagnostic Finding:** The VAE struggles to detect subtle unknown devices on clean traffic, with raw features outperforming DWT features. This limitation is noted as a diagnostic finding. However, for the final deployed decision engine (Step 9), the known/unknown boundary is established by treating the easily-detected **TPLinkSmartPlug** as the genuine unseen/unknown device, ensuring consistency between the classifier's known set and the VAE's known set.
+Reads raw PCAP files from `data/raw/`. For each packet belonging to a
+target device, records only:
+- `timestamp` (Unix seconds)
+- `packet_size` (bytes)
+- `direction` (0 = incoming, 1 = outgoing)
 
-## Phase 1 Complete: Hyperparameter consolidation
+No MAC address, IP address, or payload is stored in the output.
+Output: `data/processed/{device}.csv`
 
-For a transparent record of all configuration decisions made during Phase 1:
+### Step 3 — IAT Extraction
 
-- **Device Subset**: `AmazonEcho`, `BelkinWemoMotionSensor`, `PhilipsHue`, `SamsungCamera`, `TPLinkSmartPlug`
-- **Excluded Device**: `NestProtectSmokeAlarm` excluded due to 95% of traffic concentrated on a single anomalous day (insufficient samples elsewhere).
-- **Date Window**: `November 22–24, 2016` (selected via density profiling to guarantee sufficient simultaneous traffic across the subset).
-- **IAT Transform**: `log(1 + IAT)` (chosen instead of percentile clipping to avoid data leakage before splits, preserving extreme idle gaps natively).
-- **Window Size/Step**: `128` size, `128` step (strictly non-overlapping).
-- **Incomplete Windows**: Dropped (`pad_incomplete_windows: false`) to avoid artificial padding artifacts in the frequency domain.
-- **DWT Config**: Wavelet `db4`, Decomposition level `3`.
-- **Classification Performance**: Raw stats outperformed DWT (99.3% vs 93.4%) on clean traffic. DWT carried forward as it is expected to shine under Phase 2 jitter conditions.
-- **VAE Architecture**: `latent_dim = 16`. Ablation proved smaller bottlenecks (e.g. 2) degraded detection capability by increasing baseline reconstruction error uniformly.
-- **Unknown Device Simulation**: `TPLinkSmartPlug` was entirely held out from the final VAE and Classifier training in Step 9 because its extreme IAT pattern provides a clear signal, ensuring the final engine boundary is sharp. (Subtle anomalies like Belkin were proven much harder for the VAE).
-- **VAE Threshold**: 99th percentile of the known-device validation split.
+Computes `IAT[i] = timestamp[i+1] − timestamp[i]` for consecutive
+packets within each device's stream.
+Output: `data/processed/{device}_iat.csv`
+
+### Step 4 — Windowing
+
+Applies `log(1 + IAT)` to compress the multi-order-of-magnitude
+range of timing values, then slices each device's sequence into
+non-overlapping 128-packet windows. Each window is tagged with a
+1-hour `time_block_id` used in Step 6 to prevent temporal leakage.
+Incomplete trailing windows are dropped.
+Output: `data/features/{device}_windows.csv`
+
+### Step 5 — Feature Extraction
+
+Computes 13 raw statistical features per window from the
+log1p-transformed IAT values:
+
+| Feature | Description |
+|---|---|
+| raw_mean | Mean IAT |
+| raw_std | Standard deviation |
+| raw_min / raw_max | Range |
+| raw_median | Median |
+| raw_skew | Fisher skewness |
+| raw_kurtosis | Excess kurtosis |
+| raw_p25 / raw_p75 / raw_p95 / raw_p99 | Percentiles |
+| raw_energy | Sum of squared values |
+| raw_entropy | Shannon entropy on squared magnitudes |
+
+Output: `data/features/raw_stat_features.csv`
+
+### Step 6 — Splitting and Scaling
+
+Splits windows by time block using a **contiguous temporal** split
+(70% train / 15% val / 15% test). No time block appears in more than
+one split. A `StandardScaler` is fit on the training split only and
+applied to validation and test.
+
+Output: `data/features/raw_scaled_{train,val,test}.csv`
+        `results/raw_stat_scaler.pkl`
+        `results/split_assignment.{csv,pkl}`
+
+### Step 7 — Classification
+
+Trains a Random Forest (100 trees, unlimited depth, 1 sample per leaf)
+on the 13 scaled features. Evaluates on the validation split during
+development, then touches the test split exactly once.
+
+Reports:
+- Accuracy and macro F1 on both val and test
+- Per-device precision, recall, and F1
+- Confusion matrices (PNG) saved to a timestamped `results/step7_*/`
+  folder alongside the model and a config snapshot
+
+### Step 8 — Open-Set / Unknown Device Detection
+
+Extends the system to flag traffic as either one of the known devices or
+as an **"Unknown Device"** when traffic does not sufficiently match the
+known timing signatures.
+
+**Decision Rule:**
+For an incoming traffic window $x$, compute the prediction anomaly score:
+$$S(x) = 1.0 - \max_{c \in \text{known}} P(y = c \mid x)$$
+- If $S(x) > \tau$: flag as **`Unknown Device`** (insufficient match).
+- Else: classify as $\hat{y} = \arg\max_c P(y = c \mid x)$.
+
+**Threshold Calibration:**
+The decision threshold $\tau$ is selected strictly from the **known validation split**
+at a configured percentile (e.g., 95th percentile targeting a ~5% false alarm budget,
+or 99th percentile targeting a ~1% budget). It is **never** tuned on the test set.
+
+**Leave-One-Device-Out Empirical Benchmark:**
+To rigorously test unknown detection without assuming it works, each device is held out
+from training in turn to simulate a genuine unknown transmitter. Evaluated on the unseen test split:
+
+| Held-Out Unknown Device | Test Windows | Val 95%ile Thresh (5% target FPR) | Val 99%ile Thresh (1% target FPR) |
+|---|:---:|:---:|:---:|
+| | | Known FPR &nbsp; Unknown TPR &nbsp; Acc(Ver) | Known FPR &nbsp; Unknown TPR &nbsp; Acc(Ver) |
+| **AmazonEcho** | 204 | 3.8% &emsp;&emsp; **93.1%** &emsp;&emsp; 100.0% | 0.3% &emsp;&emsp; **53.4%** &emsp;&emsp; 99.8% |
+| **BelkinWemoMotionSensor** | 423 | 4.2% &emsp;&emsp; **66.2%** &emsp;&emsp; 100.0% | 1.4% &emsp;&emsp; **14.2%** &emsp;&emsp; 100.0% |
+| **PhilipsHue** | 242 | 4.8% &emsp;&emsp; **88.4%** &emsp;&emsp; 100.0% | 1.6% &emsp;&emsp; **66.1%** &emsp;&emsp; 99.9% |
+| **SamsungCamera** | 189 | 4.0% &emsp;&emsp; **100.0%** &emsp;&emsp; 100.0% | 1.7% &emsp;&emsp; **70.9%** &emsp;&emsp; 100.0% |
+| **TPLinkSmartPlug** | 9 | 4.1% &emsp;&emsp; **100.0%** &emsp;&emsp; 100.0% | 1.5% &emsp;&emsp; **100.0%** &emsp;&emsp; 99.8% |
+| **Average Across Devices** | — | **4.2%** &emsp;&emsp; **89.6%** &emsp;&emsp; — | **1.3%** &emsp;&emsp; **60.9%** &emsp;&emsp; — |
+
+*Acc(Ver) is the classification accuracy on test windows accepted as known.*
+
+**Open-Set Findings & Limitations:**
+- **Outlier timing profiles are reliably detected:** Devices with distinct timing behavior (such as `TPLinkSmartPlug`'s ~4-minute idle heartbeats and `SamsungCamera`'s continuous telemetry bursts) achieve **100% unknown detection**.
+- **Overlapping profiles are harder to isolate:** Devices with timing characteristics that closely resemble other high-traffic smart devices (notably `BelkinWemoMotionSensor`) achieve **66.2%** detection at a 5% false alarm budget, dropping to **14.2%** at a 1% budget.
+- **No network blocking:** This stage performs passive detection and flagging only; network access control or blocking is not enforced.
+
+---
+
+## Results Summary
+
+| Metric | Closed-Set (5 Known Devices) | Open-Set (Leave-One-Out Average) |
+|---|:---:|:---:|
+| Test Accuracy / Known Acc | 99.3% | 100.0% (on verified known windows) |
+| Test Macro F1 | 99.4% | — |
+| Unknown Detection Rate (TPR @ 95%ile) | N/A (Closed-Set) | **89.6%** (66.2% – 100.0%) |
+| Known False Alarm Rate (FPR @ 95%ile) | 0.0% | **4.2%** (controlled to ~5% target) |
+
+
+---
+
+## Setup
+
+```bash
+pip install -r requirements.txt
+```
+
+Raw PCAP files are not included in the repository (too large). Place
+them in `data/raw/` before running Step 2. Steps 3–7 can be run on
+the pre-processed data already present in `data/processed/` and
+`data/features/`.
+
+### Run order
+
+```bash
+python src/preprocessing.py   # requires data/raw/*.pcap
+python src/iat.py
+python src/windowing.py
+python src/features.py
+python src/splits.py
+python src/classifier.py
+python src/openset.py
+```
+
+Each script is self-contained and reads `configs/config.yaml`.
+
+---
+
+## Interactive Presentation Website
+
+To launch the presentation website with interactive benchmark results, timing charts, and live inference on saved test samples:
+
+```bash
+streamlit run app.py
+```
+
+---
+
+## Repository Layout
+
+```
+app.py                      Interactive presentation website (Streamlit)
+configs/
+  config.yaml               Pipeline configuration
+data/
+  raw/                      Raw PCAP files (not in git)
+  processed/                Cleaned per-device CSVs and IAT sequences
+  features/                 Windowed data, features, and scaled splits
+results/
+  raw_stat_scaler.pkl       Fitted StandardScaler
+  split_assignment.csv      Time-block → split mapping
+  step7_*/                  Timestamped run: model, confusion matrices, summary
+src/
+  preprocessing.py          Step 2
+  iat.py                    Step 3
+  windowing.py              Step 4
+  features.py               Step 5 (raw statistical features)
+  splits.py                 Step 6
+  classifier.py             Step 7
+  openset.py                Step 8 (open-set unknown detection evaluation)
+requirements.txt
+```

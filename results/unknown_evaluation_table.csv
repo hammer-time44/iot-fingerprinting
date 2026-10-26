@@ -1,0 +1,21 @@
+Device,Type,Windows,Dominant Prediction,Mean Confidence,Low-Conf Flagged %
+AmazonEcho,Known (Test),204,AmazonEcho (97.5%),0.9417156862745099,12.254901960784313
+BelkinWemoMotionSensor,Known (Test),423,BelkinWemoMotionSensor (99.8%),0.9860520094562648,1.4184397163120568
+PhilipsHue,Known (Test),242,PhilipsHue (100.0%),0.9697520661157025,3.3057851239669422
+SamsungCamera,Known (Test),189,SamsungCamera (99.5%),0.9819047619047618,1.5873015873015872
+TPLinkSmartPlug,Known (Test),9,TPLinkSmartPlug (100.0%),0.9944444444444444,0.0
+AwairAirQuality,Unknown Device,500,AmazonEcho (99.2%),0.8869400000000002,1.6
+BelkinWemoSwitch,Unknown Device,500,BelkinWemoMotionSensor (96.0%),0.86122,30.8
+CanaryCamera,Unknown Device,500,BelkinWemoMotionSensor (95.4%),0.7432799999999999,92.2
+HPPrinter,Unknown Device,345,TPLinkSmartPlug (66.7%),0.6853913043478261,94.78260869565217
+LiFXBulb,Unknown Device,423,TPLinkSmartPlug (40.7%),0.5117494089834516,98.81796690307328
+NestDropCam,Unknown Device,500,AmazonEcho (98.8%),0.4964200000000001,100.0
+NestProtectSmokeAlarm,Unknown Device,5,BelkinWemoMotionSensor (60.0%),0.52,100.0
+NetatmoWeatherStation,Unknown Device,358,PhilipsHue (95.0%),0.42539106145251404,100.0
+NetatmoWelcome,Unknown Device,500,BelkinWemoMotionSensor (70.6%),0.6473599999999999,92.80000000000001
+PixStarPhotoFrame,Unknown Device,51,PhilipsHue (72.5%),0.44941176470588223,100.0
+SamsungSmartThings,Unknown Device,500,AmazonEcho (99.0%),0.7955399999999999,63.4
+TribySpeaker,Unknown Device,236,TPLinkSmartPlug (96.2%),0.6021610169491526,99.57627118644068
+WithingsSleepSensor,Unknown Device,500,AmazonEcho (99.6%),0.92004,0.6
+WithingsSmartScale,Unknown Device,6,BelkinWemoMotionSensor (66.7%),0.5233333333333333,100.0
+iHome,Unknown Device,63,TPLinkSmartPlug (95.2%),0.7804761904761909,100.0

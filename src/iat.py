@@ -13,7 +13,6 @@ Outlier handling will be decided after reviewing the distribution.
 """
 
 import os
-import sys
 import csv
 import math
 import statistics
@@ -21,7 +20,7 @@ import yaml
 
 # ── Load config ────────────────────────────────────────────────────────
 PROJ_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-CONFIG_PATH = os.path.join(PROJ_ROOT, "configs", "phase1_config.yaml")
+CONFIG_PATH = os.path.join(PROJ_ROOT, "configs", "config.yaml")
 
 with open(CONFIG_PATH, "r") as f:
     config = yaml.safe_load(f)

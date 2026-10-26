@@ -1,0 +1,90 @@
+{
+  "leave_one_out_benchmarks": {
+    "AmazonEcho": {
+      "held_out_device": "AmazonEcho",
+      "test_unknown_windows": 204,
+      "test_known_windows": 863,
+      "th_95": 0.12,
+      "min_conf_95": 0.88,
+      "known_fpr_95": 3.8238702201622248,
+      "unknown_tpr_95": 93.13725490196079,
+      "acc_verified_95": 100.0,
+      "th_99": 0.39,
+      "min_conf_99": 0.61,
+      "known_fpr_99": 0.34762456546929316,
+      "unknown_tpr_99": 53.431372549019606,
+      "acc_verified_99": 99.76744186046511
+    },
+    "BelkinWemoMotionSensor": {
+      "held_out_device": "BelkinWemoMotionSensor",
+      "test_unknown_windows": 423,
+      "test_known_windows": 644,
+      "th_95": 0.14,
+      "min_conf_95": 0.86,
+      "known_fpr_95": 4.192546583850932,
+      "unknown_tpr_95": 66.19385342789597,
+      "acc_verified_95": 100.0,
+      "th_99": 0.33999999999999997,
+      "min_conf_99": 0.66,
+      "known_fpr_99": 1.3975155279503106,
+      "unknown_tpr_99": 14.184397163120568,
+      "acc_verified_99": 100.0
+    },
+    "PhilipsHue": {
+      "held_out_device": "PhilipsHue",
+      "test_unknown_windows": 242,
+      "test_known_windows": 825,
+      "th_95": 0.07999999999999996,
+      "min_conf_95": 0.92,
+      "known_fpr_95": 4.848484848484849,
+      "unknown_tpr_95": 88.42975206611571,
+      "acc_verified_95": 100.0,
+      "th_99": 0.3261999999999989,
+      "min_conf_99": 0.6738000000000011,
+      "known_fpr_99": 1.575757575757576,
+      "unknown_tpr_99": 66.11570247933885,
+      "acc_verified_99": 99.8768472906404
+    },
+    "SamsungCamera": {
+      "held_out_device": "SamsungCamera",
+      "test_unknown_windows": 189,
+      "test_known_windows": 878,
+      "th_95": 0.12,
+      "min_conf_95": 0.88,
+      "known_fpr_95": 3.986332574031891,
+      "unknown_tpr_95": 100.0,
+      "acc_verified_95": 100.0,
+      "th_99": 0.3628999999999996,
+      "min_conf_99": 0.6371000000000004,
+      "known_fpr_99": 1.7084282460136675,
+      "unknown_tpr_99": 70.8994708994709,
+      "acc_verified_99": 100.0
+    },
+    "TPLinkSmartPlug": {
+      "held_out_device": "TPLinkSmartPlug",
+      "test_unknown_windows": 9,
+      "test_known_windows": 1058,
+      "th_95": 0.17000000000000004,
+      "min_conf_95": 0.83,
+      "known_fpr_95": 4.064272211720227,
+      "unknown_tpr_95": 100.0,
+      "acc_verified_95": 100.0,
+      "th_99": 0.39410000000000084,
+      "min_conf_99": 0.6058999999999992,
+      "known_fpr_99": 1.5122873345935728,
+      "unknown_tpr_99": 100.0,
+      "acc_verified_99": 99.80806142034548
+    }
+  },
+  "operational_five_device_calibration": {
+    "calibrated_threshold_percentile": 95,
+    "calibrated_anomaly_threshold": 0.16000000000000003,
+    "minimum_confidence_required": 0.84,
+    "test_known_false_positive_rate": 3.936269915651359,
+    "test_overall_accuracy": 99.34395501405811,
+    "test_verified_accuracy": 100.0,
+    "total_test_windows": 1067,
+    "verified_test_windows": 1025,
+    "flagged_test_windows": 42
+  }
+}

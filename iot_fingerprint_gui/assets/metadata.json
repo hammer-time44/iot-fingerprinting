@@ -1,0 +1,16 @@
+{
+  "model_source": "results\\step7_20261026_151020\\rf_model.pkl",
+  "scaler_source": "results\\raw_stat_scaler.pkl",
+  "model_type": "RandomForestClassifier",
+  "n_estimators": 100,
+  "feature_type": "13 Statistical Timing Moments (log1p IAT)",
+  "training_devices": [
+    "AmazonEcho",
+    "BelkinWemoMotionSensor",
+    "PhilipsHue",
+    "SamsungCamera",
+    "TPLinkSmartPlug"
+  ],
+  "dataset": "UNSW Sydney Smart Home Benchmark Dataset (Nov 2016)",
+  "window_size": 128
+}

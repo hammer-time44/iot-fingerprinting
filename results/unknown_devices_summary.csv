@@ -1,0 +1,23 @@
+Device,MAC,Packets (Nov 22-24),128-Pkt Windows,Evaluated Windows,Status,Notes
+BlipCareBPMeter,74:6a:89:00:2e:25,0,0,0,offline_in_capture_window,"Device was offline or not captured during Nov 22-24, 2016"
+HelloBarbie,28:c2:dd:ff:a5:2d,0,0,0,offline_in_capture_window,"Device was offline or not captured during Nov 22-24, 2016"
+WithingsSmartScale,00:24:e4:1b:6f:96,813,6,6,processed,Ready for inference
+PixStarPhotoFrame,e0:76:d0:33:bb:85,6566,51,51,processed,Ready for inference
+RingDoorBell,88:4a:ea:31:66:9d,0,0,0,offline_in_capture_window,"Device was offline or not captured during Nov 22-24, 2016"
+TPLinkCamera,f4:f2:6d:93:51:f1,0,0,0,offline_in_capture_window,"Device was offline or not captured during Nov 22-24, 2016"
+WithingsBabyMonitor,00:24:e4:11:18:a8,0,0,0,offline_in_capture_window,"Device was offline or not captured during Nov 22-24, 2016"
+BelkinCamera,b4:75:0e:ec:e5:a9,0,0,0,offline_in_capture_window,"Device was offline or not captured during Nov 22-24, 2016"
+LiFXBulb,d0:73:d5:01:83:08,54263,423,423,processed,Ready for inference
+AwairAirQuality,70:88:6b:10:0f:c6,112446,878,500,processed,Ready for inference
+TribySpeaker,18:b7:9e:02:20:44,30297,236,236,processed,Ready for inference
+NetatmoWeatherStation,70:ee:50:03:b8:ac,45909,358,358,processed,Ready for inference
+HPPrinter,70:5a:0f:e4:9b:c0,44240,345,345,processed,Ready for inference
+SamsungSmartThings,d0:52:a8:00:67:5e,88224,689,500,processed,Ready for inference
+iHome,74:c6:3b:29:d7:1d,8161,63,63,processed,Ready for inference
+WithingsSleepSensor,00:24:e4:20:28:c6,101336,791,500,processed,Ready for inference
+NestProtectSmokeAlarm,18:b4:30:25:be:e4,685,5,5,processed,Ready for inference
+BelkinWemoSwitch,ec:1a:59:79:f4:89,176429,1378,500,processed,Ready for inference
+NetatmoWelcome,70:ee:50:18:34:43,302271,2361,500,processed,Ready for inference
+NestDropCam,30:8c:fb:2f:e4:b2,647180,5056,500,processed,Ready for inference
+CanaryCamera,7c:70:bc:5d:5e:dc,973537,7605,500,processed,Ready for inference
+AugustDoorBell,e0:76:d0:3f:00:ae,0,0,0,offline_in_capture_window,"Device was offline or not captured during Nov 22-24, 2016"

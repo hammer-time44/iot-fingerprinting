@@ -17,7 +17,6 @@ Non-negotiable rules enforced:
 """
 
 import os
-import sys
 import datetime
 import yaml
 import dpkt
@@ -26,7 +25,7 @@ import csv
 
 # ── Load config ────────────────────────────────────────────────────────
 PROJ_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-CONFIG_PATH = os.path.join(PROJ_ROOT, "configs", "phase1_config.yaml")
+CONFIG_PATH = os.path.join(PROJ_ROOT, "configs", "config.yaml")
 
 with open(CONFIG_PATH, "r") as f:
     config = yaml.safe_load(f)
