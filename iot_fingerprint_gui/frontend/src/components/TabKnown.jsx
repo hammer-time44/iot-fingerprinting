@@ -3,8 +3,6 @@ import { Play, Square, Activity, CheckCircle, BarChart3, Database } from 'lucide
 import ProbabilityBars from './ProbabilityBars';
 import IatTimelineChart from './IatTimelineChart';
 import FeaturesTable from './FeaturesTable';
-import defaultEvaluationData from '../data/evaluation_data.json';
-import { startReplayStream } from '../data/replayClient';
 
 const KNOWN_DEVICES = [
   { id: 'AmazonEcho', name: 'Amazon Echo', category: 'Smart Voice Speaker', mac: '44:65:0d:56:cc:d3' },
@@ -17,29 +15,29 @@ const KNOWN_DEVICES = [
 export default function TabKnown({ threshold = 0.84 }) {
   const [activeStreams, setActiveStreams] = useState({});
   const [streamData, setStreamData] = useState({});
-  const [modelInfo, setModelInfo] = useState(defaultEvaluationData);
+  const [modelInfo, setModelInfo] = useState(null);
   const socketsRef = useRef({});
 
-  // Fetch model info & global metrics
+  // Fetch model info & global metrics from live Python backend
   useEffect(() => {
     fetch('/api/model/info')
       .then((res) => res.json())
       .then((data) => setModelInfo(data))
-      .catch((err) => console.error('Error fetching model info:', err));
+      .catch((err) => console.error('Error fetching model info from backend:', err));
   }, []);
 
-  // Cleanup active streams on unmount
+  // Cleanup WebSockets on unmount
   useEffect(() => {
     return () => {
-      Object.values(socketsRef.current).forEach((h) => h && h.stop && h.stop());
+      Object.values(socketsRef.current).forEach((ws) => ws && ws.close());
     };
   }, []);
 
-  // Update running streams when threshold changes
+  // Send threshold update to active WebSocket connections
   useEffect(() => {
-    Object.values(socketsRef.current).forEach((h) => {
-      if (h && h.setThreshold) {
-        h.setThreshold(threshold);
+    Object.values(socketsRef.current).forEach((ws) => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ action: 'set_threshold', threshold }));
       }
     });
   }, [threshold]);
@@ -49,29 +47,43 @@ export default function TabKnown({ threshold = 0.84 }) {
 
     if (isRunning) {
       if (socketsRef.current[devId]) {
-        socketsRef.current[devId].stop();
+        socketsRef.current[devId].close();
         delete socketsRef.current[devId];
       }
       setActiveStreams((prev) => ({ ...prev, [devId]: false }));
     } else {
-      setActiveStreams((prev) => ({ ...prev, [devId]: true }));
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = window.location.hostname || '127.0.0.1';
+      const wsUrl = `${protocol}//${host}:8765/stream/replay/${devId}?threshold=${threshold}`;
+
       try {
-        const handle = startReplayStream(
-          devId,
-          threshold,
-          (data) => {
+        const ws = new WebSocket(wsUrl);
+        socketsRef.current[devId] = ws;
+
+        ws.onopen = () => {
+          setActiveStreams((prev) => ({ ...prev, [devId]: true }));
+        };
+
+        ws.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          if (data.type === 'window') {
             setStreamData((prev) => ({
               ...prev,
               [devId]: data,
             }));
-          },
-          () => {
-            setActiveStreams((prev) => ({ ...prev, [devId]: false }));
           }
-        );
-        socketsRef.current[devId] = handle;
+        };
+
+        ws.onerror = (err) => {
+          console.error(`WebSocket error for ${devId}:`, err);
+          setActiveStreams((prev) => ({ ...prev, [devId]: false }));
+        };
+
+        ws.onclose = () => {
+          setActiveStreams((prev) => ({ ...prev, [devId]: false }));
+        };
       } catch (err) {
-        console.error('Failed to start replay stream:', err);
+        console.error('Failed to open WebSocket:', err);
         setActiveStreams((prev) => ({ ...prev, [devId]: false }));
       }
     }
