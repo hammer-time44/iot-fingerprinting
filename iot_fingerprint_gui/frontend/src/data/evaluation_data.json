@@ -1,0 +1,430 @@
+{
+  "threshold": 0.84,
+  "calibration_method": "5th percentile of max confidence on 1,071 known validation windows",
+  "known_test_accuracy": 99.34,
+  "known_test_false_alarm_rate": 3.94,
+  "known_windows_tested": 1067,
+  "overall_unknown_detection_rate": 67.58,
+  "unknown_windows_tested": 4987,
+  "confusion_matrix": {
+    "classes": [
+      "AmazonEcho",
+      "BelkinWemoMotionSensor",
+      "PhilipsHue",
+      "SamsungCamera",
+      "TPLinkSmartPlug"
+    ],
+    "matrix": [
+      [
+        199,
+        1,
+        2,
+        2,
+        0
+      ],
+      [
+        0,
+        422,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        242,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        188,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        9
+      ]
+    ]
+  },
+  "feature_importances": [
+    {
+      "feature": "raw_p75",
+      "importance": 0.1672
+    },
+    {
+      "feature": "raw_median",
+      "importance": 0.1363
+    },
+    {
+      "feature": "raw_p25",
+      "importance": 0.1329
+    },
+    {
+      "feature": "raw_min",
+      "importance": 0.1131
+    },
+    {
+      "feature": "raw_kurtosis",
+      "importance": 0.1128
+    },
+    {
+      "feature": "raw_skew",
+      "importance": 0.0724
+    },
+    {
+      "feature": "raw_max",
+      "importance": 0.0598
+    },
+    {
+      "feature": "raw_entropy",
+      "importance": 0.0419
+    },
+    {
+      "feature": "raw_mean",
+      "importance": 0.0381
+    },
+    {
+      "feature": "raw_p95",
+      "importance": 0.0377
+    },
+    {
+      "feature": "raw_p99",
+      "importance": 0.033
+    },
+    {
+      "feature": "raw_energy",
+      "importance": 0.0278
+    },
+    {
+      "feature": "raw_std",
+      "importance": 0.0271
+    }
+  ],
+  "devices": [
+    {
+      "name": "AmazonEcho",
+      "category": "IoT Voice Assistant",
+      "type": "known",
+      "windows_tested": 204,
+      "dominant_label": "AmazonEcho",
+      "accuracy": 97.55,
+      "flagged_unknown_pct": 12.25,
+      "avg_confidence": 0.9417,
+      "status": "Trained Known Device"
+    },
+    {
+      "name": "BelkinWemoMotionSensor",
+      "category": "IoT Motion Sensor",
+      "type": "known",
+      "windows_tested": 423,
+      "dominant_label": "BelkinWemoMotionSensor",
+      "accuracy": 99.76,
+      "flagged_unknown_pct": 1.42,
+      "avg_confidence": 0.9861,
+      "status": "Trained Known Device"
+    },
+    {
+      "name": "PhilipsHue",
+      "category": "IoT Lighting Bridge",
+      "type": "known",
+      "windows_tested": 242,
+      "dominant_label": "PhilipsHue",
+      "accuracy": 100.0,
+      "flagged_unknown_pct": 3.31,
+      "avg_confidence": 0.9698,
+      "status": "Trained Known Device"
+    },
+    {
+      "name": "SamsungCamera",
+      "category": "IoT Security Camera",
+      "type": "known",
+      "windows_tested": 189,
+      "dominant_label": "SamsungCamera",
+      "accuracy": 99.47,
+      "flagged_unknown_pct": 1.59,
+      "avg_confidence": 0.9819,
+      "status": "Trained Known Device"
+    },
+    {
+      "name": "TPLinkSmartPlug",
+      "category": "IoT Power Switch",
+      "type": "known",
+      "windows_tested": 9,
+      "dominant_label": "TPLinkSmartPlug",
+      "accuracy": 100.0,
+      "flagged_unknown_pct": 0.0,
+      "avg_confidence": 0.9944,
+      "status": "Trained Known Device"
+    },
+    {
+      "name": "AwairAirQuality",
+      "category": "IoT Environmental Sensor",
+      "type": "unknown",
+      "windows_tested": 500,
+      "dominant_label": "AmazonEcho",
+      "dominant_share_pct": 99.2,
+      "flagged_unknown_pct": 1.6,
+      "avg_confidence": 0.8869,
+      "is_confident_failure": true,
+      "notes": "Periodic telemetry mimics Echo idle loop"
+    },
+    {
+      "name": "BelkinWemoSwitch",
+      "category": "IoT Smart Plug",
+      "type": "unknown",
+      "windows_tested": 500,
+      "dominant_label": "BelkinWemoMotionSensor",
+      "dominant_share_pct": 96.0,
+      "flagged_unknown_pct": 30.8,
+      "avg_confidence": 0.8612,
+      "is_confident_failure": true,
+      "notes": "Shares UPnP timing with Belkin Motion Sensor"
+    },
+    {
+      "name": "CanaryCamera",
+      "category": "IoT Security Camera",
+      "type": "unknown",
+      "windows_tested": 500,
+      "dominant_label": "BelkinWemoMotionSensor",
+      "dominant_share_pct": 95.4,
+      "flagged_unknown_pct": 92.2,
+      "avg_confidence": 0.7433,
+      "is_confident_failure": false,
+      "notes": "Effectively rejected as unfamiliar"
+    },
+    {
+      "name": "HPPrinter",
+      "category": "Office Peripheral / Appliance",
+      "type": "unknown",
+      "windows_tested": 345,
+      "dominant_label": "TPLinkSmartPlug",
+      "dominant_share_pct": 66.67,
+      "flagged_unknown_pct": 94.78,
+      "avg_confidence": 0.6854,
+      "is_confident_failure": false,
+      "notes": "Effectively rejected as unfamiliar"
+    },
+    {
+      "name": "LiFXBulb",
+      "category": "IoT Smart Lighting",
+      "type": "unknown",
+      "windows_tested": 423,
+      "dominant_label": "TPLinkSmartPlug",
+      "dominant_share_pct": 40.66,
+      "flagged_unknown_pct": 98.82,
+      "avg_confidence": 0.5117,
+      "is_confident_failure": false,
+      "notes": "Effectively rejected as unfamiliar"
+    },
+    {
+      "name": "NestDropCam",
+      "category": "IoT Video Camera",
+      "type": "unknown",
+      "windows_tested": 500,
+      "dominant_label": "AmazonEcho",
+      "dominant_share_pct": 98.8,
+      "flagged_unknown_pct": 100.0,
+      "avg_confidence": 0.4964,
+      "is_confident_failure": false,
+      "notes": "Effectively rejected as unfamiliar"
+    },
+    {
+      "name": "NestProtectSmokeAlarm",
+      "category": "IoT Safety Alarm",
+      "type": "unknown",
+      "windows_tested": 5,
+      "dominant_label": "BelkinWemoMotionSensor",
+      "dominant_share_pct": 60.0,
+      "flagged_unknown_pct": 100.0,
+      "avg_confidence": 0.52,
+      "is_confident_failure": false,
+      "notes": "Effectively rejected as unfamiliar"
+    },
+    {
+      "name": "NetatmoWeatherStation",
+      "category": "IoT Weather Station",
+      "type": "unknown",
+      "windows_tested": 358,
+      "dominant_label": "PhilipsHue",
+      "dominant_share_pct": 94.97,
+      "flagged_unknown_pct": 100.0,
+      "avg_confidence": 0.4254,
+      "is_confident_failure": false,
+      "notes": "Effectively rejected as unfamiliar"
+    },
+    {
+      "name": "NetatmoWelcome",
+      "category": "IoT Video Camera",
+      "type": "unknown",
+      "windows_tested": 500,
+      "dominant_label": "BelkinWemoMotionSensor",
+      "dominant_share_pct": 70.6,
+      "flagged_unknown_pct": 92.8,
+      "avg_confidence": 0.6474,
+      "is_confident_failure": false,
+      "notes": "Effectively rejected as unfamiliar"
+    },
+    {
+      "name": "PixStarPhotoFrame",
+      "category": "Cloud Media Appliance",
+      "type": "unknown",
+      "windows_tested": 51,
+      "dominant_label": "PhilipsHue",
+      "dominant_share_pct": 72.55,
+      "flagged_unknown_pct": 100.0,
+      "avg_confidence": 0.4494,
+      "is_confident_failure": false,
+      "notes": "Effectively rejected as unfamiliar"
+    },
+    {
+      "name": "SamsungSmartThings",
+      "category": "IoT Home Hub",
+      "type": "unknown",
+      "windows_tested": 500,
+      "dominant_label": "AmazonEcho",
+      "dominant_share_pct": 99.0,
+      "flagged_unknown_pct": 63.4,
+      "avg_confidence": 0.7955,
+      "is_confident_failure": false,
+      "notes": "Effectively rejected as unfamiliar"
+    },
+    {
+      "name": "TribySpeaker",
+      "category": "IoT Speaker / Intercom",
+      "type": "unknown",
+      "windows_tested": 236,
+      "dominant_label": "TPLinkSmartPlug",
+      "dominant_share_pct": 96.19,
+      "flagged_unknown_pct": 99.58,
+      "avg_confidence": 0.6022,
+      "is_confident_failure": false,
+      "notes": "Effectively rejected as unfamiliar"
+    },
+    {
+      "name": "WithingsSleepSensor",
+      "category": "IoT Health Sensor",
+      "type": "unknown",
+      "windows_tested": 500,
+      "dominant_label": "AmazonEcho",
+      "dominant_share_pct": 99.6,
+      "flagged_unknown_pct": 0.6,
+      "avg_confidence": 0.92,
+      "is_confident_failure": true,
+      "notes": "Periodic telemetry mimics Echo idle loop"
+    },
+    {
+      "name": "WithingsSmartScale",
+      "category": "IoT Health Scale",
+      "type": "unknown",
+      "windows_tested": 6,
+      "dominant_label": "BelkinWemoMotionSensor",
+      "dominant_share_pct": 66.67,
+      "flagged_unknown_pct": 100.0,
+      "avg_confidence": 0.5233,
+      "is_confident_failure": false,
+      "notes": "Effectively rejected as unfamiliar"
+    },
+    {
+      "name": "iHome",
+      "category": "IoT Smart Plug",
+      "type": "unknown",
+      "windows_tested": 63,
+      "dominant_label": "TPLinkSmartPlug",
+      "dominant_share_pct": 95.24,
+      "flagged_unknown_pct": 100.0,
+      "avg_confidence": 0.7805,
+      "is_confident_failure": false,
+      "notes": "Effectively rejected as unfamiliar"
+    },
+    {
+      "name": "AugustDoorBell",
+      "category": "IoT Doorbell Camera (Offline)",
+      "type": "unknown_offline",
+      "windows_tested": 0,
+      "dominant_label": "N/A",
+      "dominant_share_pct": 0.0,
+      "flagged_unknown_pct": 0.0,
+      "avg_confidence": 0.0,
+      "is_confident_failure": false,
+      "notes": "Device offline (0 packets in Nov 2016 capture)"
+    },
+    {
+      "name": "BelkinCamera",
+      "category": "IoT Video Camera (Offline)",
+      "type": "unknown_offline",
+      "windows_tested": 0,
+      "dominant_label": "N/A",
+      "dominant_share_pct": 0.0,
+      "flagged_unknown_pct": 0.0,
+      "avg_confidence": 0.0,
+      "is_confident_failure": false,
+      "notes": "Device offline (0 packets in Nov 2016 capture)"
+    },
+    {
+      "name": "BlipCareBPMeter",
+      "category": "IoT Health Monitor (Offline)",
+      "type": "unknown_offline",
+      "windows_tested": 0,
+      "dominant_label": "N/A",
+      "dominant_share_pct": 0.0,
+      "flagged_unknown_pct": 0.0,
+      "avg_confidence": 0.0,
+      "is_confident_failure": false,
+      "notes": "Device offline (0 packets in Nov 2016 capture)"
+    },
+    {
+      "name": "HelloBarbie",
+      "category": "IoT Connected Toy (Offline)",
+      "type": "unknown_offline",
+      "windows_tested": 0,
+      "dominant_label": "N/A",
+      "dominant_share_pct": 0.0,
+      "flagged_unknown_pct": 0.0,
+      "avg_confidence": 0.0,
+      "is_confident_failure": false,
+      "notes": "Device offline (0 packets in Nov 2016 capture)"
+    },
+    {
+      "name": "RingDoorBell",
+      "category": "IoT Doorbell Camera (Offline)",
+      "type": "unknown_offline",
+      "windows_tested": 0,
+      "dominant_label": "N/A",
+      "dominant_share_pct": 0.0,
+      "flagged_unknown_pct": 0.0,
+      "avg_confidence": 0.0,
+      "is_confident_failure": false,
+      "notes": "Device offline (0 packets in Nov 2016 capture)"
+    },
+    {
+      "name": "TPLinkCamera",
+      "category": "IoT Cloud Camera (Offline)",
+      "type": "unknown_offline",
+      "windows_tested": 0,
+      "dominant_label": "N/A",
+      "dominant_share_pct": 0.0,
+      "flagged_unknown_pct": 0.0,
+      "avg_confidence": 0.0,
+      "is_confident_failure": false,
+      "notes": "Device offline (0 packets in Nov 2016 capture)"
+    },
+    {
+      "name": "WithingsBabyMonitor",
+      "category": "IoT Baby Monitor (Offline)",
+      "type": "unknown_offline",
+      "windows_tested": 0,
+      "dominant_label": "N/A",
+      "dominant_share_pct": 0.0,
+      "flagged_unknown_pct": 0.0,
+      "avg_confidence": 0.0,
+      "is_confident_failure": false,
+      "notes": "Device offline (0 packets in Nov 2016 capture)"
+    }
+  ]
+}
