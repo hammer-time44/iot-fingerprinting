@@ -3,9 +3,10 @@ import { Search, Play, Square, AlertCircle, Sliders, Filter } from 'lucide-react
 import ProbabilityBars from './ProbabilityBars';
 import IatTimelineChart from './IatTimelineChart';
 import FeaturesTable from './FeaturesTable';
+import defaultEvaluationData from '../data/evaluation_data.json';
 
 export default function TabUnknown({ threshold = 0.84, setThreshold }) {
-  const [evalData, setEvalData] = useState(null);
+  const [evalData, setEvalData] = useState(defaultEvaluationData);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeStreams, setActiveStreams] = useState({});
   const [streamData, setStreamData] = useState({});

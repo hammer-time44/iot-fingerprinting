@@ -3,6 +3,7 @@ import { Play, Square, Activity, CheckCircle, BarChart3, Database } from 'lucide
 import ProbabilityBars from './ProbabilityBars';
 import IatTimelineChart from './IatTimelineChart';
 import FeaturesTable from './FeaturesTable';
+import defaultEvaluationData from '../data/evaluation_data.json';
 
 const KNOWN_DEVICES = [
   { id: 'AmazonEcho', name: 'Amazon Echo', category: 'Smart Voice Speaker', mac: '44:65:0d:56:cc:d3' },
@@ -15,7 +16,7 @@ const KNOWN_DEVICES = [
 export default function TabKnown({ threshold = 0.84 }) {
   const [activeStreams, setActiveStreams] = useState({});
   const [streamData, setStreamData] = useState({});
-  const [modelInfo, setModelInfo] = useState(null);
+  const [modelInfo, setModelInfo] = useState(defaultEvaluationData);
   const socketsRef = useRef({});
 
   // Fetch model info & global metrics
